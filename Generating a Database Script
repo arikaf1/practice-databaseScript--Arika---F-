@@ -1,0 +1,104 @@
+DROP TABLE IF EXISTS loans;
+DROP TABLE IF EXISTS books;
+DROP TABLE IF EXISTS authors;
+-- Create authors table
+CREATE TABLE authors (
+ author_id INT PRIMARY KEY AUTO_INCREMENT,
+ first_name VARCHAR(50) NOT NULL,
+ last_name VARCHAR(50) NOT NULL,
+ birth_year INT,
+ nationality VARCHAR(50),
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+-- Create books table with foreign key to authors
+CREATE TABLE books (
+1
+ book_id INT PRIMARY KEY AUTO_INCREMENT,
+ title VARCHAR(200) NOT NULL,
+ author_id INT NOT NULL,
+ isbn VARCHAR(13) UNIQUE,
+ publication_year INT,
+ genre VARCHAR(50),
+ pages INT,
+ available_copies INT DEFAULT 1,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (author_id) REFERENCES authors(author_id) ON DELETE
+CASCADE
+);
+-- Create loans table with foreign key to books
+CREATE TABLE loans (
+ loan_id INT PRIMARY KEY AUTO_INCREMENT,
+ book_id INT NOT NULL,
+ borrower_name VARCHAR(100) NOT NULL,
+ borrower_email VARCHAR(100),
+ loan_date DATE NOT NULL,
+ due_date DATE NOT NULL,
+ return_date DATE NULL,
+ status ENUM('active', 'returned', 'overdue') DEFAULT 'active',
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (book_id) REFERENCES books(book_id) ON DELETE CASCADE
+);
+-- Insert sample data into authors table
+INSERT INTO authors (first_name, last_name, birth_year, nationality)
+VALUES
+('J.K.', 'Rowling', 1965, 'British'),
+('George', 'Orwell', 1903, 'British'),
+('Harper', 'Lee', 1926, 'American'),
+('Agatha', 'Christie', 1890, 'British'),
+('Gabriel', 'García Márquez', 1927, 'Colombian');
+-- Insert sample data into books table
+2
+INSERT INTO books (title, author_id, isbn, publication_year, genre,
+pages, available_copies) VALUES
+('Harry Potter and the Philosopher''s Stone', 1, '9780747532699',
+1997, 'Fantasy', 223, 3),
+('Harry Potter and the Chamber of Secrets', 1, '9780747538493', 1998,
+'Fantasy', 251, 2),
+('1984', 2, '9780451524935', 1949, 'Dystopian Fiction', 328, 4),
+('Animal Farm', 2, '9780451526342', 1945, 'Political Satire', 112,
+2),
+('To Kill a Mockingbird', 3, '9780061120084', 1960, 'Classic
+Literature', 376, 3),
+('Murder on the Orient Express', 4, '9780062693662', 1934, 'Mystery',
+256, 2),
+('One Hundred Years of Solitude', 5, '9780060883287', 1967, 'Magical
+Realism', 417, 1);
+-- Insert sample data into loans table
+INSERT INTO loans (book_id, borrower_name, borrower_email, loan_date,
+due_date, status) VALUES
+(1, 'Alice Johnson', 'alice.johnson@email.com', '2024-05-15',
+'2024-06-15', 'active'),
+(3, 'Bob Smith', 'bob.smith@email.com', '2024-05-20', '2024-06-20',
+'active'),
+(5, 'Carol Davis', 'carol.davis@email.com', '2024-05-10',
+'2024-06-10', 'overdue'),
+(2, 'David Wilson', 'david.wilson@email.com', '2024-04-25',
+'2024-05-25', 'returned'),
+(6, 'Emma Brown', 'emma.brown@email.com', '2024-05-25', '2024-06-25',
+'active');
+-- Update the returned loan with actual return date
+UPDATE loans
+SET return_date = '2024-05-20', status = 'returned'
+WHERE loan_id = 4;
+-- Commit the transaction
+COMMIT;
+-- Verification queries to test the script
+SELECT 'Authors Table:' as Table_Name;
+SELECT * FROM authors;
+SELECT 'Books Table:' as Table_Name;
+SELECT * FROM books;
+SELECT 'Loans Table:' as Table_Name;
+SELECT * FROM loans;
+-- Test foreign key relationships
+SELECT 'Books with Author Information:' as Query_Description;
+SELECT b.title, b.isbn, a.first_name, a.last_name, b.publication_year
+FROM books b
+JOIN authors a ON b.author_id = a.author_id;
+SELECT 'Active Loans with Book and Author Information:' as
+Query_Description;
+SELECT l.borrower_name, b.title, a.first_name, a.last_name,
+l.loan_date, l.due_date
+FROM loans l
+JOIN books b ON l.book_id = b.book_id
+JOIN authors a ON b.author_id = a.author_id
+WHERE l.status = 'active';
